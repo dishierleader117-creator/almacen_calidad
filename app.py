@@ -4,7 +4,7 @@ import sys
 try:
     import gspread
 except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "gspread"])
     import gspread
 
 # --- IMPORTACIONES DE LIBRERÍAS ---
