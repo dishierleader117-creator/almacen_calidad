@@ -1,3 +1,5 @@
+import os
+os.system("pip install gspread oauth2client")
 # --- IMPORTACIONES DE LIBRERÍAS ---
 import smtplib
 from email.mime.multipart import MIMEMultipart
