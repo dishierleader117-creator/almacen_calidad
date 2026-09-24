@@ -1,3 +1,12 @@
+import subprocess
+import sys
+
+try:
+    import gspread
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread"])
+    import gspread
+
 # --- IMPORTACIONES DE LIBRERÍAS ---
 import streamlit as st
 import pandas as pd
@@ -5,7 +14,6 @@ from datetime import datetime
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import gspread
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
@@ -15,7 +23,6 @@ st.set_page_config(
 # --- CONEXIÓN A GOOGLE SHEETS ---
 @st.cache_resource
 def conectar_google_sheets():
-    # gspread se conecta de forma nativa con el diccionario de secretos sin necesidad de oauth2client
     creds_dict = dict(st.secrets["gspread_json"])
     client = gspread.service_account_from_dict(creds_dict)
     sheet = client.open("Inventario_Calidad_Almacen")
