@@ -1,7 +1,3 @@
-import sys
-import subprocess
-subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread", "oauth2client"])
-
 # --- IMPORTACIONES DE LIBRERÍAS ---
 import smtplib
 from email.mime.multipart import MIMEMultipart
