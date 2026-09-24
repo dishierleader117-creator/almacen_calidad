@@ -1,3 +1,6 @@
+import subprocess
+subprocess.run(["pip", "install", "gspread", "oauth2client"])
+
 # --- IMPORTACIONES DE LIBRERIAS ---
 import smtplib
 from email.mime.multipart import MIMEMultipart
