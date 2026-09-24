@@ -20,12 +20,16 @@ def conectar_google_sheets():
       "https://spreadsheets.google.com/feeds",
       "https://www.googleapis.com/auth/drive",
   ]
-  creds = ServiceAccountCredentials.from_json_keyfile_name(
-      "credenciales.json", scope
-  )
+
+  # Leemos las credenciales directamente desde los secretos de Streamlit
+  creds_dict = dict(st.secrets["gspread_json"])
+  creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+
   client = gspread.authorize(creds)
   sheet = client.open("Inventario_Calidad_Almacen")
   return sheet
+
+
 
 try:
   sh = conectar_google_sheets()
@@ -165,4 +169,3 @@ elif menu == "📋 Historial":
     st.info("Aún no se han registrado movimientos.")
   else:
     st.dataframe(df_mov, use_container_width=True)
-
