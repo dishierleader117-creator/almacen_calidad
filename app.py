@@ -5,12 +5,20 @@ from datetime import datetime
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import gspread
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
     page_title="Control de Inventario y Calidad", page_icon="📦", layout="wide"
 )
+
+# --- IMPORTAR GSPREAD DE FORMA SEGURA ---
+try:
+    import gspread
+except ImportError:
+    st.error(
+        "Falta instalar gspread. Revisa que esté en tu archivo requirements.txt."
+    )
+    st.stop()
 
 # --- CONEXIÓN A GOOGLE SHEETS ---
 @st.cache_resource
