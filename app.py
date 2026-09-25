@@ -9,14 +9,13 @@ import gspread
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
-    page_title="Control de Inventario y Calidad", page_icon="📦", layout="wide"
+    page_title="Control de Inventario y Calidad", layout="wide"
 )
 
 # --- CONEXIÓN A GOOGLE SHEETS ---
 @st.cache_resource
 def conectar_google_sheets():
     creds_dict = dict(st.secrets["gspread_json"])
-    # Asegurar que los saltos de línea de la llave privada se lean correctamente
     creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
     
     client = gspread.service_account_from_dict(creds_dict)
@@ -37,7 +36,7 @@ def enviar_alerta_stock_bajo(material, cantidad_actual, limite_minimo):
     password = "ogfz prpu bzzh ggnj"
     destinatario = ["calidadalmacen4@gmail.com"]
 
-    asunto = f"⚠️ ALERTA DE STOCK BAJO: {material}"
+    asunto = f"ALERTA DE STOCK BAJO: {material}"
     cuerpo = f"""Atención,
 
 Se ha registrado una salida en el Almacén de Calidad y el siguiente insumo ha quedado por debajo del límite mínimo:
@@ -69,11 +68,11 @@ Sistema Automático de Control de Inventario
         return False
 
 # --- INTERFAZ DE USUARIO ---
-st.title("📦 Sistema de Control de Inventario y Calidad 🧠")
+st.title("Sistema de Control de Inventario y Calidad")
 st.sidebar.title("Menú de Navegación")
 menu = st.sidebar.radio(
     "Selecciona una opción:",
-    ["📊 Ver Inventario", "➕ Registrar Movimiento", "📁 Historial"],
+    ["Ver Inventario", "Registrar Movimiento", "Historial"],
 )
 
 # --- FUNCIÓN PARA LEER DATOS ---
@@ -82,9 +81,9 @@ def obtener_datos(worksheet):
     return pd.DataFrame(data)
 
 # --- 1. VER INVENTARIO ---
-if menu == "📊 Ver Inventario":
+if menu == "Ver Inventario":
     st.header("Inventario Actual en la Nube")
-    if st.button("🔄 Actualizar Datos"):
+    if st.button("Actualizar Datos"):
         st.rerun()
         
     df_inv = obtener_datos(ws_inventario)
@@ -94,7 +93,7 @@ if menu == "📊 Ver Inventario":
         st.dataframe(df_inv, use_container_width=True)
 
 # --- 2. REGISTRAR MOVIMIENTO ---
-elif menu == "➕ Registrar Movimiento":
+elif menu == "Registrar Movimiento":
     st.header("Registrar Entrada o Salida de Insumo")
     
     df_inv = obtener_datos(ws_inventario)
@@ -107,26 +106,35 @@ elif menu == "➕ Registrar Movimiento":
             tipo = st.selectbox("Tipo de Movimiento", ["Entrada", "Salida"])
             producto_sel = st.selectbox("Selecciona el Insumo", productos)
             cantidad_mov = st.number_input("Cantidad", min_value=1, step=1)
-            usuario = st.text_input("Responsable de entrega")
+            responsable = st.text_input("Responsable de entrega")
             quien_recibe = st.text_input("A quién se le entregó el material")
             
             submitted = st.form_submit_button("Guardar Movimiento")
             
             if submitted:
-                if not usuario.strip() or not quien_recibe.strip():
-                    st.error("Por favor, completa los campos de 'Responsable de entrega' y 'A quién se le entregó'.")
+                if not responsable.strip() or not quien_recibe.strip():
+                    st.error("Por favor, completa los campos de 'Responsable de entrega' y 'A quién se le entregó el material'.")
                 else:
                     cell = ws_inventario.find(producto_sel)
                     if cell:
                         fila = cell.row
                         
-                        # Columna 3 (C) es Stock actual. Columna 4 (D) es Stock Mínimo.
+                        # 1. Leer el stock actual estrictamente desde la Columna C (Stock - Columna 3)
                         val_raw = ws_inventario.cell(fila, 3).value
                         val_actual = int(val_raw) if val_raw and str(val_raw).strip().isdigit() else 0
                         
-                        min_raw = ws_inventario.cell(fila, 4).value
-                        stock_min = int(min_raw) if min_raw and str(min_raw).strip().isdigit() else 0
+                        # 2. Obtener el stock mínimo de forma dinámica desde el DataFrame
+                        fila_df = df_inv[df_inv["Producto"] == producto_sel]
+                        stock_min = 0
+                        if not fila_df.empty:
+                            posibles_columnas_min = ["Stock Minimo", "Stock Mínimo", "Minimo", "Mínimo"]
+                            for col in posibles_columnas_min:
+                                if col in fila_df.columns:
+                                    val_min_raw = fila_df[col].values[0]
+                                    stock_min = int(val_min_raw) if val_min_raw and str(val_min_raw).strip().isdigit() else 0
+                                    break
                         
+                        # 3. Calcular el nuevo stock
                         if tipo == "Entrada":
                             nuevo_stock = val_actual + cantidad_mov
                         else:
@@ -134,24 +142,26 @@ elif menu == "➕ Registrar Movimiento":
                             if nuevo_stock < 0:
                                 nuevo_stock = 0
                         
-                        # Actualizar únicamente la Columna C (Stock) sin tocar el Nombre (Columna B)
+                        # 4. Actualizar únicamente la Columna 3 (Stock) sin tocar el nombre del producto
                         ws_inventario.update_cell(fila, 3, nuevo_stock)
                         
+                        # 5. Registrar el movimiento en la pestaña de historial
                         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        ws_movimientos.append_row([fecha_actual, tipo, producto_sel, cantidad_mov, usuario, quien_recibe])
+                        ws_movimientos.append_row([fecha_actual, tipo, producto_sel, cantidad_mov, responsable, quien_recibe])
                         
                         st.success(f"¡Movimiento registrado con éxito! Stock actualizado a: {nuevo_stock}")
                         
+                        # 6. Evaluar alerta de stock bajo
                         if tipo == "Salida" and nuevo_stock <= stock_min:
                             enviar_alerta_stock_bajo(producto_sel, nuevo_stock, stock_min)
-                            st.warning(f"⚠️ ¡Atención! El insumo {producto_sel} ha quedado por debajo del stock mínimo. Se ha enviado una alerta por correo.")
+                            st.warning(f"⚠️ ¡Atención! El insumo {producto_sel} ha quedado por debajo del límite mínimo ({stock_min}). Se ha enviado una alerta por correo.")
                     else:
                         st.error("No se encontró el producto en la hoja de inventario.")
 
 # --- 3. HISTORIAL ---
-elif menu == "📁 Historial":
+elif menu == "Historial":
     st.header("Historial de Movimientos")
-    if st.button("🔄 Actualizar Historial"):
+    if st.button("Actualizar Historial"):
         st.rerun()
         
     df_mov = obtener_datos(ws_movimientos)
