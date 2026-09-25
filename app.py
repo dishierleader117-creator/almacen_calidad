@@ -1,18 +1,3 @@
-import sys
-import os
-
-packages_dir = os.path.join(os.path.dirname(__file__), "packages")
-if packages_dir not in sys.path:
-    sys.path.insert(0, packages_dir)
-
-try:
-    import gspread
-except ImportError:
-    import subprocess
-    os.makedirs(packages_dir, exist_ok=True)
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread", "--target", packages_dir])
-    import gspread
-
 # --- IMPORTACIONES DE LIBRERÍAS ---
 import streamlit as st
 import pandas as pd
@@ -20,6 +5,7 @@ from datetime import datetime
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import gspread
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
@@ -41,3 +27,5 @@ try:
 except Exception as e:
     st.error(f"Error al conectar con Google Sheets: {e}")
     st.stop()
+
+
