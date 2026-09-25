@@ -1,7 +1,7 @@
 import sys
 import os
 
-# Creamos y usamos una carpeta local de paquetes para evitar problemas de permisos
+# Configuramos la carpeta local para los paquetes
 local_packages = os.path.abspath("./packages")
 if local_packages not in sys.path:
     sys.path.insert(0, local_packages)
