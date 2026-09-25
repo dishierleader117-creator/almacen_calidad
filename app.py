@@ -120,11 +120,11 @@ elif menu == "➕ Registrar Movimiento":
                     if cell:
                         fila = cell.row
                         
-                        # Lectura segura de celdas para evitar errores si están vacías
-                        val_raw = ws_inventario.cell(fila, 2).value
+                        # Columna 3 (C) es Stock actual. Columna 4 (D) es Stock Mínimo.
+                        val_raw = ws_inventario.cell(fila, 3).value
                         val_actual = int(val_raw) if val_raw and str(val_raw).strip().isdigit() else 0
                         
-                        min_raw = ws_inventario.cell(fila, 3).value
+                        min_raw = ws_inventario.cell(fila, 4).value
                         stock_min = int(min_raw) if min_raw and str(min_raw).strip().isdigit() else 0
                         
                         if tipo == "Entrada":
@@ -134,7 +134,8 @@ elif menu == "➕ Registrar Movimiento":
                             if nuevo_stock < 0:
                                 nuevo_stock = 0
                         
-                        ws_inventario.update_cell(fila, 2, nuevo_stock)
+                        # Actualizar únicamente la Columna C (Stock) sin tocar el Nombre (Columna B)
+                        ws_inventario.update_cell(fila, 3, nuevo_stock)
                         
                         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         ws_movimientos.append_row([fecha_actual, tipo, producto_sel, cantidad_mov, usuario, quien_recibe])
