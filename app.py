@@ -1,12 +1,3 @@
-import sys
-import subprocess
-
-try:
-    import gspread
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread"])
-    import gspread
-
 # --- IMPORTACIONES DE LIBRERÍAS ---
 import streamlit as st
 import pandas as pd
@@ -14,6 +5,7 @@ from datetime import datetime
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import gspread
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
@@ -35,4 +27,3 @@ try:
 except Exception as e:
     st.error(f"Error al conectar con Google Sheets: {e}")
     st.stop()
-
