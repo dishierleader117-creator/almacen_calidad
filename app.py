@@ -1,18 +1,3 @@
-import sys
-import os
-
-# Configuramos la carpeta local para los paquetes
-local_packages = os.path.abspath("./packages")
-if local_packages not in sys.path:
-    sys.path.insert(0, local_packages)
-
-try:
-    import gspread
-except ImportError:
-    import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread", "--target", "./packages"])
-    import gspread
-
 # --- IMPORTACIONES DE LIBRERÍAS ---
 import streamlit as st
 import pandas as pd
@@ -20,6 +5,7 @@ from datetime import datetime
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import gspread
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
