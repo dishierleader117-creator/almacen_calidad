@@ -107,38 +107,37 @@ elif menu == "➕ Registrar Movimiento":
             tipo = st.selectbox("Tipo de Movimiento", ["Entrada", "Salida"])
             producto_sel = st.selectbox("Selecciona el Insumo", productos)
             cantidad_mov = st.number_input("Cantidad", min_value=1, step=1)
-            usuario = st.text_input("Responsable / Usuario")
+            usuario = st.text_input("Responsable de entrega")
+            quien_recibe = st.text_input("A quién se le entregó el material")
             
             submitted = st.form_submit_button("Guardar Movimiento")
             
             if submitted:
-                if not usuario.strip():
-                    st.error("Por favor, ingresa el nombre del responsable.")
+                if not usuario.strip() or not quien_recibe.strip():
+                    st.error("Por favor, completa los campos de 'Responsable de entrega' y 'A quién se le entregó'.")
                 else:
                     cell = ws_inventario.find(producto_sel)
-                    if cell = ws_inventario.find(producto_sel)
-          if cell:
-              fila = cell.row
-              
-              # Lectura segura de celdas para evitar errores si están vacías
-              val_raw = ws_inventario.cell(fila, 2).value
-              val_actual = int(val_raw) if val_raw and str(val_raw).strip().isdigit() else 0
-              
-              min_raw = ws_inventario.cell(fila, 3).value
-              stock_min = int(min_raw) if min_raw and str(min_raw).strip().isdigit() else 0
-              
-              if tipo == "Entrada":
-                  nuevo_stock = val_actual + cantidad_mov
-              else:
-                  nuevo_stock = val_actual - cantidad_mov
-                  if nuevo_stock < 0:
-                      nuevo_stock = 0
-
+                    if cell:
+                        fila = cell.row
+                        
+                        # Lectura segura de celdas para evitar errores si están vacías
+                        val_raw = ws_inventario.cell(fila, 2).value
+                        val_actual = int(val_raw) if val_raw and str(val_raw).strip().isdigit() else 0
+                        
+                        min_raw = ws_inventario.cell(fila, 3).value
+                        stock_min = int(min_raw) if min_raw and str(min_raw).strip().isdigit() else 0
+                        
+                        if tipo == "Entrada":
+                            nuevo_stock = val_actual + cantidad_mov
+                        else:
+                            nuevo_stock = val_actual - cantidad_mov
+                            if nuevo_stock < 0:
+                                nuevo_stock = 0
                         
                         ws_inventario.update_cell(fila, 2, nuevo_stock)
                         
                         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        ws_movimientos.append_row([fecha_actual, tipo, producto_sel, cantidad_mov, usuario])
+                        ws_movimientos.append_row([fecha_actual, tipo, producto_sel, cantidad_mov, usuario, quien_recibe])
                         
                         st.success(f"¡Movimiento registrado con éxito! Stock actualizado a: {nuevo_stock}")
                         
