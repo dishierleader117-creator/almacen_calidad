@@ -116,17 +116,24 @@ elif menu == "➕ Registrar Movimiento":
                     st.error("Por favor, ingresa el nombre del responsable.")
                 else:
                     cell = ws_inventario.find(producto_sel)
-                    if cell:
-                        fila = cell.row
-                        val_actual = int(ws_inventario.cell(fila, 2).value or 0)
-                        stock_min = int(ws_inventario.cell(fila, 3).value or 0)
-                        
-                        if tipo == "Entrada":
-                            nuevo_stock = val_actual + cantidad_mov
-                        else:
-                            nuevo_stock = val_actual - cantidad_mov
-                            if nuevo_stock < 0:
-                                nuevo_stock = 0
+                    if cell = ws_inventario.find(producto_sel)
+          if cell:
+              fila = cell.row
+              
+              # Lectura segura de celdas para evitar errores si están vacías
+              val_raw = ws_inventario.cell(fila, 2).value
+              val_actual = int(val_raw) if val_raw and str(val_raw).strip().isdigit() else 0
+              
+              min_raw = ws_inventario.cell(fila, 3).value
+              stock_min = int(min_raw) if min_raw and str(min_raw).strip().isdigit() else 0
+              
+              if tipo == "Entrada":
+                  nuevo_stock = val_actual + cantidad_mov
+              else:
+                  nuevo_stock = val_actual - cantidad_mov
+                  if nuevo_stock < 0:
+                      nuevo_stock = 0
+
                         
                         ws_inventario.update_cell(fila, 2, nuevo_stock)
                         
