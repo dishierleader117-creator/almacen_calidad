@@ -16,15 +16,23 @@ st.set_page_config(
 @st.cache_resource
 def conectar_google_sheets():
     creds_dict = dict(st.secrets["gspread_json"])
+
+    creds_dict["private_key"] = creds_dict["private_key"].replace(
+        "\\n", "\n"
+    )
+
     client = gspread.service_account_from_dict(creds_dict)
+
     sheet = client.open("Inventario_Calidad_Almacen")
+
     return sheet
+
 
 try:
     sh = conectar_google_sheets()
     ws_inventario = sh.worksheet("Inventario")
     ws_movimientos = sh.worksheet("Movimientos")
+
 except Exception as e:
     st.error(f"Error al conectar con Google Sheets: {e}")
     st.stop()
-
